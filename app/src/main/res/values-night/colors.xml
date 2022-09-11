@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2022 Acme
+
+  SPDX-License-Identifier: Apache-2.0
+
+  -->
+
+<resources>
+    <color name="freeform_bar">#CCBBBBBB</color>
+    <color name="freeform_bar_activated">#FFFFFFFF</color>
+</resources>

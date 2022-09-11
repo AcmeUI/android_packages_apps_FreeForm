@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2022 Acme
+
+  SPDX-License-Identifier: Apache-2.0
+
+  -->
+
+<resources>
+    <string name="free_form">自由窗口</string>
+    <string name="free_form_desc">以悬浮窗形式前台运行应用</string>
+</resources>
