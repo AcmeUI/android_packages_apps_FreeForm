@@ -12,13 +12,14 @@ import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.*
+import android.view.View.MeasureSpec.getMode
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.annotation.AttrRes
@@ -35,6 +36,7 @@ class FreeFormView @JvmOverloads constructor(
 ) : CardView(context, attributeSet, defStyleAttr) {
     private val mWindowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val mDefWindowWidth = mWindowManager.currentWindowMetrics.bounds.width()
+    private val mDefWindowHeight = mWindowManager.currentWindowMetrics.bounds.height()
     private val mDefWindowDpi = resources.configuration.densityDpi
     private var mFreeFormScale = 1F
     private val mFreeFormWidth get() = (mDefWindowWidth * 0.7 * mFreeFormScale).toInt()
@@ -77,7 +79,6 @@ class FreeFormView @JvmOverloads constructor(
             mFreeFormHeight
         )
 
-
         mTextureView.setOnTouchListener { _, event ->
             FreeFormMotionEvent().injectMotionEvent(
                 InputDevice.SOURCE_TOUCHSCREEN,
@@ -114,7 +115,6 @@ class FreeFormView @JvmOverloads constructor(
                 mVirtualDisplay.surface = Surface(surface)
             }
         }
-
 
         mTopBar.apply {
             var downRawX = 0F
@@ -203,27 +203,47 @@ class FreeFormView @JvmOverloads constructor(
     }
 
     fun addFreeForm(packageName: String) {
-        mFreeFormPackageName = packageName
-        startApp(packageName, mVirtualDisplay.display.displayId)
+        //freeform模式
+        val WINDOWING_MODE_FREEFORM = 5
 
-        mWindowLayoutParams.apply {
-            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            width = mFreeFormWidth
-            height = (mFreeFormHeight + 48.dp).toInt()
-            flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-            format = PixelFormat.RGBA_8888
-            x = 0
-            y = 0
-        }
+        val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+        intent?.addFlags(
+            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+        )
+        val freeFormWidth = 1080
+        val freeFormHeight = 1728
+        val options = ActivityOptions.makeBasic()
+        val left = mDefWindowWidth / 2 - freeFormWidth / 2
+        val top = mDefWindowHeight / 2 - freeFormHeight / 2
+        val right = mDefWindowWidth / 2 + freeFormWidth / 2
+        val bottom = mDefWindowHeight / 2 + freeFormHeight / 2
+        options.launchBounds = Rect(left, top, right, bottom)
+        options.setLaunchWindowingMode(WINDOWING_MODE_FREEFORM)
+        context.startActivity(intent, options.toBundle())
 
-        try {
-            mWindowManager.addView(this, mWindowLayoutParams)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+//        mFreeFormPackageName = packageName
+//        startApp(packageName, mVirtualDisplay.display.displayId)
+//
+//        mWindowLayoutParams.apply {
+//            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+//            width = mFreeFormWidth
+//            height = (mFreeFormHeight + 48.dp).toInt()
+//            flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+//                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+//                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
+//                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+//            format = PixelFormat.RGBA_8888
+//            x = 0
+//            y = 0
+//        }
+//
+//        try {
+//            mWindowManager.addView(this, mWindowLayoutParams)
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
     }
 
     private fun removeFreeForm() {
